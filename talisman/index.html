@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Talisman</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --card: #ffffff;
+      --text: #2b2724;
+      --muted: #8a827a;
+      --accent: #7a5cff;
+      --accent-text: #ffffff;
+      --border: #e4ddd3;
+      --focus: rgba(122, 92, 255, 0.25);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #181716;
+        --card: #232120;
+        --text: #ece7e1;
+        --muted: #9b938b;
+        --accent: #9d86ff;
+        --accent-text: #181716;
+        --border: #3a3633;
+        --focus: rgba(157, 134, 255, 0.3);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+    main { width: 100%; max-width: 640px; }
+    header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+    h1 { font-size: 1.4rem; margin: 0; letter-spacing: 0.02em; }
+    .date { color: var(--muted); font-size: 0.9rem; }
+    .progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 20px; }
+    .progress > div { height: 100%; background: var(--accent); width: 0; transition: width 0.3s; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-top: 6px solid var(--accent);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .step { display: none; }
+    .step.active { display: block; animation: fade 0.25s ease-out; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    h2 { font-size: 1.25rem; margin: 0 0 4px; }
+    .hint { color: var(--muted); margin: 0 0 16px; font-size: 0.95rem; }
+    label { display: block; font-weight: 600; margin: 14px 0 6px; font-size: 0.95rem; }
+    textarea, input[type="text"] {
+      width: 100%;
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    textarea { min-height: 140px; resize: vertical; }
+    textarea.small { min-height: 80px; }
+    textarea:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
+    .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; gap: 12px; }
+    button {
+      font: inherit;
+      border-radius: 6px;
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+    }
+    button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .status { color: var(--muted); font-size: 0.85rem; margin-top: 16px; min-height: 1.3em; }
+    .settings { margin-top: 20px; font-size: 0.9rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .settings button { padding: 6px 12px; font-size: 0.85rem; }
+    pre {
+      white-space: pre-wrap;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 0.85rem;
+      max-height: 320px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>✦ Talisman</h1>
+    <span class="date" id="date"></span>
+  </header>
+  <div class="progress"><div id="bar"></div></div>
+
+  <form class="card" id="form" autocomplete="off">
+    <section class="step" data-step="0">
+      <h2>🌙 Was hast du geträumt?</h2>
+      <p class="hint">Schreib auf, was dir von der Nacht geblieben ist.</p>
+      <textarea name="traum" placeholder="Ich habe geträumt, dass …"></textarea>
+      <div class="actions">
+        <span></span>
+        <button type="button" class="primary" data-next>Weiter</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="1">
+      <h2>🙏 Wofür bist du dankbar?</h2>
+      <p class="hint">Drei Dinge, groß oder klein.</p>
+      <label>1.</label><input type="text" name="dank1" />
+      <label>2.</label><input type="text" name="dank2" />
+      <label>3.</label><input type="text" name="dank3" />
+      <div class="actions">
+        <button type="button" data-back>Zurück</button>
+        <button type="button" class="primary" data-next>Weiter</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="2">
+      <h2>🌟 Wofür lobst du dich?</h2>
+      <p class="hint">Drei Dinge, auf die du stolz sein darfst.</p>
+      <label>1.</label><input type="text" name="lob1" />
+      <label>2.</label><input type="text" name="lob2" />
+      <label>3.</label><input type="text" name="lob3" />
+      <div class="actions">
+        <button type="button" data-back>Zurück</button>
+        <button type="button" class="primary" data-submit>Absenden</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="3">
+      <h2>💭 Emotionen</h2>
+      <p class="hint">Was ist gerade da? Felder dürfen leer bleiben.</p>
+      <label for="wut">Wut</label><textarea class="small" id="wut" name="wut"></textarea>
+      <label for="trauer">Trauer</label><textarea class="small" id="trauer" name="trauer"></textarea>
+      <label for="fragezeichen">?</label><textarea class="small" id="fragezeichen" name="fragezeichen" placeholder="Was ist sonst noch da?"></textarea>
+      <div class="actions">
+        <button type="button" data-back>Zurück</button>
+        <button type="button" class="primary" data-submit>Absenden</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="4">
+      <h2>✓ Gespeichert</h2>
+      <p class="hint" id="doneText"></p>
+      <pre id="preview"></pre>
+      <div class="actions">
+        <button type="button" data-back>Zurück</button>
+        <button type="button" class="primary" id="newEntry">Neuer Eintrag</button>
+      </div>
+    </section>
+
+    <div class="status" id="status"></div>
+  </form>
+
+  <div class="settings">
+    <span id="folderInfo">Kein Obsidian-Ordner gewählt – Datei wird heruntergeladen.</span>
+    <button type="button" id="pickFolder">Obsidian-Ordner wählen</button>
+  </div>
+</main>
+
+<script>
+  const STEPS = 5;
+  const DRAFT_KEY = "talisman:draft";
+  const form = document.getElementById("form");
+  const steps = [...form.querySelectorAll(".step")];
+  const statusEl = document.getElementById("status");
+  const folderInfo = document.getElementById("folderInfo");
+  const canPickFolder = "showDirectoryPicker" in window;
+
+  let dirHandle = null;
+  let state = loadDraft() || freshState();
+  // Abgeschlossener Eintrag von einem früheren Tag → neu anfangen.
+  if (state.step === STEPS - 1 && state.date !== today()) state = freshState();
+
+  function today() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  function freshState() {
+    return { date: today(), step: 0, values: {} };
+  }
+
+  function loadDraft() {
+    try {
+      const draft = JSON.parse(localStorage.getItem(DRAFT_KEY));
+      return draft && draft.values ? draft : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveDraft() {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+    } catch {}
+  }
+
+  function formatDate(iso) {
+    const [y, m, d] = iso.split("-");
+    return `${d}.${m}.${y}`;
+  }
+
+  function render() {
+    steps.forEach((s, i) => s.classList.toggle("active", i === state.step));
+    document.getElementById("bar").style.width = `${(state.step / (STEPS - 1)) * 100}%`;
+    document.getElementById("date").textContent = formatDate(state.date);
+    for (const el of form.elements) {
+      if (el.name) el.value = state.values[el.name] || "";
+    }
+    const field = steps[state.step].querySelector("textarea, input");
+    if (field) field.focus();
+  }
+
+  function go(step) {
+    state.step = step;
+    saveDraft();
+    render();
+  }
+
+  // Jede Eingabe wird sofort lokal zwischengespeichert.
+  form.addEventListener("input", (e) => {
+    if (!e.target.name) return;
+    state.values[e.target.name] = e.target.value;
+    saveDraft();
+    statusEl.textContent = "Entwurf gespeichert";
+  });
+
+  form.addEventListener("click", async (e) => {
+    if (e.target.matches("[data-next]")) go(state.step + 1);
+    if (e.target.matches("[data-back]")) go(state.step - 1);
+    if (e.target.matches("[data-submit]")) {
+      e.target.disabled = true;
+      await writeMarkdown();
+      e.target.disabled = false;
+      go(state.step + 1);
+    }
+  });
+
+  document.getElementById("newEntry").addEventListener("click", () => {
+    state = freshState();
+    saveDraft();
+    statusEl.textContent = "";
+    render();
+  });
+
+  function list(prefix) {
+    return [1, 2, 3]
+      .map((n) => (state.values[prefix + n] || "").trim())
+      .map((v, i) => `${i + 1}. ${v}`)
+      .join("\n");
+  }
+
+  function block(name) {
+    return (state.values[name] || "").trim() || "–";
+  }
+
+  function toMarkdown() {
+    return `---
+date: ${state.date}
+tags: [talisman, journal]
+---
+
+# Talisman – ${formatDate(state.date)}
+
+## 🌙 Traum
+${block("traum")}
+
+## 🙏 Dankbarkeit
+${list("dank")}
+
+## 🌟 Selbstlob
+${list("lob")}
+
+## 💭 Emotionen
+### Wut
+${block("wut")}
+
+### Trauer
+${block("trauer")}
+
+### ?
+${block("fragezeichen")}
+`;
+  }
+
+  function fileName() {
+    return `${state.date} Talisman.md`;
+  }
+
+  async function writeMarkdown() {
+    const md = toMarkdown();
+    document.getElementById("preview").textContent = md;
+    try {
+      if (dirHandle && (await ensurePermission(dirHandle))) {
+        const file = await dirHandle.getFileHandle(fileName(), { create: true });
+        const writable = await file.createWritable();
+        await writable.write(md);
+        await writable.close();
+        setDone(`„${fileName()}“ in „${dirHandle.name}“ gespeichert.`);
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    download(md);
+    setDone(`„${fileName()}“ wurde heruntergeladen.`);
+  }
+
+  function setDone(text) {
+    statusEl.textContent = text;
+    document.getElementById("doneText").textContent = text;
+  }
+
+  function download(md) {
+    const url = URL.createObjectURL(new Blob([md], { type: "text/markdown" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: fileName() });
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // --- Obsidian-Ordner (File System Access API, Chrome/Edge) ---
+
+  async function ensurePermission(handle) {
+    const opts = { mode: "readwrite" };
+    if ((await handle.queryPermission(opts)) === "granted") return true;
+    return (await handle.requestPermission(opts)) === "granted";
+  }
+
+  function idb(mode, fn) {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open("talisman", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("kv");
+      req.onerror = () => reject(req.error);
+      req.onsuccess = () => {
+        const tx = req.result.transaction("kv", mode);
+        const r = fn(tx.objectStore("kv"));
+        tx.oncomplete = () => resolve(r && r.result);
+        tx.onerror = () => reject(tx.error);
+      };
+    });
+  }
+
+  function showFolder() {
+    if (!canPickFolder) {
+      folderInfo.textContent = "Dein Browser kann nicht direkt in Ordner speichern – Datei wird heruntergeladen. (Chrome oder Edge nutzen)";
+      document.getElementById("pickFolder").hidden = true;
+    } else if (dirHandle) {
+      folderInfo.textContent = `Speichert in: ${dirHandle.name}`;
+    }
+  }
+
+  document.getElementById("pickFolder").addEventListener("click", async () => {
+    try {
+      dirHandle = await window.showDirectoryPicker({ id: "talisman", mode: "readwrite" });
+      await idb("readwrite", (s) => s.put(dirHandle, "dir"));
+      showFolder();
+    } catch (err) {
+      if (err.name !== "AbortError") console.error(err);
+    }
+  });
+
+  (async () => {
+    if (canPickFolder) {
+      try {
+        dirHandle = (await idb("readonly", (s) => s.get("dir"))) || null;
+      } catch {}
+    }
+    showFolder();
+  })();
+
+  render();
+</script>
+</body>
+</html>
